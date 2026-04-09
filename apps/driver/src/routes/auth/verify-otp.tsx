@@ -36,10 +36,10 @@ export default function VerifyOTP() {
         setSession({ accessToken: res.access_token, refreshToken: res.refresh_token, userId, role, email: emailClaim });
         navigate('/');
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Invalid OTP';
-        if (msg.includes('429') || msg.toLowerCase().includes('too many')) {
+        const status = e instanceof Error && 'status' in e ? (e as { status: number }).status : 0;
+        if (status === 429) {
           setError('Too many attempts. Request a new code.');
-        } else if (msg.includes('expired')) {
+        } else if (status === 410) {
           setError('Code expired. Go back to request a new one.');
         } else {
           setError('Incorrect code. Try again.');

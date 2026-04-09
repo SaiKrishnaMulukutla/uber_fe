@@ -63,11 +63,11 @@ export default function Register() {
       setSession({ accessToken: res.access_token, refreshToken: res.refresh_token, userId, role, email });
       navigate('/');
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Registration failed';
-      if (msg.includes('409') || msg.toLowerCase().includes('already exists')) {
+      const status = e instanceof Error && 'status' in e ? (e as { status: number }).status : 0;
+      if (status === 409) {
         setError('An account with this email already exists.');
       } else {
-        setError(msg);
+        setError(e instanceof Error ? e.message : 'Registration failed');
       }
     }
   };

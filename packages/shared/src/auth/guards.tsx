@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSessionStore } from '../stores/sessionStore';
+import { isExpired } from './session';
 import type { UserRole } from './session';
 
 interface RequireAuthProps {
@@ -11,7 +12,7 @@ export function RequireAuth({ role, children }: RequireAuthProps) {
   const location = useLocation();
   const { accessToken, role: sessionRole } = useSessionStore();
 
-  if (!accessToken) {
+  if (!accessToken || isExpired(accessToken)) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 

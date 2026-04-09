@@ -5,7 +5,6 @@ import type { Trip } from '@uber_fe/shared';
 import { Map, TripProgressSteps, BottomSheet } from '@uber_fe/ui';
 
 const POLL_INTERVAL = 5000;
-const LOCATION_INTERVAL = 3000;
 
 function ElapsedTimer({ startedAt }: { startedAt: string }) {
   const [elapsed, setElapsed] = useState(0);
@@ -34,29 +33,27 @@ export default function ActiveTrip() {
   const [showEndConfirm, setShowEndConfirm] = useState(false);
 
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const locationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const watchIdRef = useRef<number | null>(null);
 
   // Location publishing helpers
   const startLocationPublish = useCallback(() => {
-    if (!tripId || locationIntervalRef.current) return;
-    locationIntervalRef.current = setInterval(() => {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          trips.pushLocation(tripId, {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          }).catch(() => {});
-        },
-        () => {/* silent */}
-      );
-    }, LOCATION_INTERVAL);
+    if (!tripId || watchIdRef.current !== null) return;
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        trips.pushLocation(tripId, {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        }).catch(() => {});
+      },
+      () => { /* silent */ },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+    );
   }, [tripId]);
 
   const stopLocationPublish = useCallback(() => {
-    if (locationIntervalRef.current) {
-      clearInterval(locationIntervalRef.current);
-      locationIntervalRef.current = null;
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
     }
   }, []);
 
@@ -81,7 +78,6 @@ export default function ActiveTrip() {
     return () => {
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
       stopLocationPublish();
-      if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
     };
   }, [fetchTrip, stopLocationPublish]);
 

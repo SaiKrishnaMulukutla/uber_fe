@@ -12,7 +12,7 @@ export function configureClient(opts: {
   _onUnauthorized = opts.onUnauthorized;
 }
 
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
     this.name = 'ApiError';
