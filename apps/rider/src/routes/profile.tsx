@@ -1,14 +1,48 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { users, useSessionStore } from '@uber_fe/shared';
 import type { User } from '@uber_fe/shared';
-import { Spinner } from '@uber_fe/ui';
-import { ChevronRightIcon, MailIcon, PhoneIcon } from '@uber_fe/ui';
+import { Button, ChevronRightIcon, MailIcon, PhoneIcon } from '@uber_fe/ui';
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   return name.slice(0, 2).toUpperCase();
+}
+
+function ProfileSkeleton() {
+  return (
+    <div className="px-4 py-4 pb-24 flex flex-col gap-4 animate-pulse">
+      <div className="bg-white rounded-2xl px-5 py-6 shadow-sm flex items-center gap-4">
+        <div className="h-16 w-16 bg-gray-200 rounded-full flex-shrink-0" />
+        <div className="flex flex-col gap-2 flex-1">
+          <div className="h-5 bg-gray-200 rounded w-32" />
+          <div className="h-3 bg-gray-100 rounded w-48" />
+          <div className="h-4 bg-gray-100 rounded-full w-20 mt-1" />
+        </div>
+      </div>
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        {[0, 1].map((i) => (
+          <div key={i} className={`flex items-center gap-3 px-5 py-4 ${i === 0 ? 'border-b border-gray-50' : ''}`}>
+            <div className="h-5 w-5 bg-gray-200 rounded flex-shrink-0" />
+            <div className="flex flex-col gap-1.5 flex-1">
+              <div className="h-3 bg-gray-100 rounded w-16" />
+              <div className="h-4 bg-gray-200 rounded w-40" />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        {[0, 1].map((i) => (
+          <div key={i} className={`flex items-center gap-3 px-5 py-4 ${i === 0 ? 'border-b border-gray-50' : ''}`}>
+            <div className="h-6 w-6 bg-gray-100 rounded flex-shrink-0" />
+            <div className="h-4 bg-gray-200 rounded w-16 flex-1" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function Profile() {
@@ -18,12 +52,19 @@ export default function Profile() {
   const clearSession = useSessionStore((s) => s.clearSession);
   const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    if (userId) {
-      users.getProfile(userId).then(setProfile).finally(() => setLoading(false));
-    }
+  const load = useCallback(() => {
+    if (!userId) return;
+    setError(false);
+    setLoading(true);
+    users.getProfile(userId)
+      .then(setProfile)
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
   }, [userId]);
+
+  useEffect(() => { load(); }, [load]);
 
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to log out?')) {
@@ -32,10 +73,29 @@ export default function Profile() {
     }
   };
 
+  const header = (
+    <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 z-10">
+      <h1 className="text-xl font-bold text-gray-900">Account</h1>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center bg-white">
-        <Spinner size="lg" />
+      <div className="h-full overflow-y-auto bg-gray-50">
+        {header}
+        <ProfileSkeleton />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-full overflow-y-auto bg-gray-50">
+        {header}
+        <div className="flex flex-col items-center justify-center py-24 gap-4 px-6">
+          <p className="text-gray-500 text-sm">Failed to load profile</p>
+          <Button variant="secondary" onClick={load}>Retry</Button>
+        </div>
       </div>
     );
   }
@@ -46,12 +106,14 @@ export default function Profile() {
 
   return (
     <div className="h-full overflow-y-auto bg-gray-50">
-      {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 z-10">
-        <h1 className="text-xl font-bold text-gray-900">Account</h1>
-      </div>
+      {header}
 
-      <div className="px-4 py-4 pb-24 flex flex-col gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="px-4 py-4 pb-24 flex flex-col gap-4"
+      >
         {/* Avatar + name card */}
         <div className="bg-white rounded-2xl px-5 py-6 shadow-sm flex items-center gap-4">
           <div className="h-16 w-16 bg-black rounded-full flex items-center justify-center flex-shrink-0">
@@ -120,7 +182,7 @@ export default function Profile() {
         >
           Log out
         </button>
-      </div>
+      </motion.div>
     </div>
   );
 }

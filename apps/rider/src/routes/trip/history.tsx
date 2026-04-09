@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { trips } from '@uber_fe/shared';
 import type { Trip } from '@uber_fe/shared';
 import { TripStatusBadge, Button } from '@uber_fe/ui';
@@ -83,9 +84,12 @@ export default function TripHistory() {
           </div>
         )}
 
-        {data.map((trip) => (
-          <button
+        {data.map((trip, i) => (
+          <motion.button
             key={trip.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.04, duration: 0.2 }}
             onClick={() => {
               const isActive = trip.status === 'REQUESTED' || trip.status === 'DRIVER_ASSIGNED' || trip.status === 'STARTED';
               navigate(isActive ? `/trip/tracking/${trip.id}` : `/trip/summary/${trip.id}`);
@@ -111,7 +115,7 @@ export default function TripHistory() {
                 {trip.fare != null ? `₹${trip.fare.toFixed(0)}` : '—'}
               </span>
             </div>
-          </button>
+          </motion.button>
         ))}
 
         {!loading && data.length > 0 && (

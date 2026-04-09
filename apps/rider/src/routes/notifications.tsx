@@ -1,7 +1,20 @@
 import { useEffect, useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { notifications as notifApi } from '@uber_fe/shared';
 import type { Notification } from '@uber_fe/shared';
-import { Spinner, Button } from '@uber_fe/ui';
+import { Button } from '@uber_fe/ui';
+
+function NotificationSkeleton() {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 px-4 py-3.5 flex items-start gap-3 animate-pulse">
+      <div className="h-10 w-10 bg-gray-200 rounded-full flex-shrink-0" />
+      <div className="flex-1 flex flex-col gap-2 pt-1">
+        <div className="h-4 bg-gray-200 rounded w-40" />
+        <div className="h-3 bg-gray-100 rounded w-56" />
+      </div>
+    </div>
+  );
+}
 
 type NotificationType = Notification['type'];
 
@@ -89,9 +102,13 @@ export default function Notifications() {
 
       <div className="px-4 py-3 pb-6 flex flex-col gap-2">
         {loading && (
-          <div className="flex justify-center py-12">
-            <Spinner />
-          </div>
+          <>
+            <NotificationSkeleton />
+            <NotificationSkeleton />
+            <NotificationSkeleton />
+            <NotificationSkeleton />
+            <NotificationSkeleton />
+          </>
         )}
 
         {!loading && error && (
@@ -109,11 +126,14 @@ export default function Notifications() {
           </div>
         )}
 
-        {data.map((n) => {
+        {data.map((n, i) => {
           const typeConfig = TYPE_ICONS[n.type] ?? { icon: '📌', bg: 'bg-gray-50' };
           return (
-            <button
+            <motion.button
               key={n.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04, duration: 0.2 }}
               onClick={() => markRead(n.id)}
               className={`
                 w-full text-left flex items-start gap-3 px-4 py-3.5 rounded-2xl
@@ -138,7 +158,7 @@ export default function Notifications() {
                 </div>
                 <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{n.body}</p>
               </div>
-            </button>
+            </motion.button>
           );
         })}
       </div>

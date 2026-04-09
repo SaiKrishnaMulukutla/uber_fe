@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { trips } from '@uber_fe/shared';
 import type { Trip } from '@uber_fe/shared';
 import { TripStatusBadge } from '@uber_fe/ui';
@@ -45,7 +46,7 @@ export default function TripHistory() {
     try {
       const res = await trips.history(PAGE_SIZE, offset);
       setTotal(res.total);
-      setData((prev) => append ? [...prev, ...res.trips] : res.trips);
+      setData((prev: Trip[]) => append ? [...prev, ...res.trips] : res.trips);
     } catch {
       setError('Failed to load trips');
     } finally {
@@ -95,11 +96,14 @@ export default function TripHistory() {
         )}
 
         {/* Trip cards */}
-        {data.map((trip) => {
+        {data.map((trip: Trip, i: number) => {
           const isActive = trip.status === 'DRIVER_ASSIGNED' || trip.status === 'STARTED';
           return (
-            <div
+            <motion.div
               key={trip.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04, duration: 0.2 }}
               onClick={() => isActive ? navigate(`/trip/active/${trip.id}`) : undefined}
               className={`bg-white rounded-2xl shadow-sm border border-gray-100 px-4 py-4 ${isActive ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
             >
@@ -127,7 +131,7 @@ export default function TripHistory() {
                   )}
                 </div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
 
