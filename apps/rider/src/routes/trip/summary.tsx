@@ -24,7 +24,10 @@ export default function TripSummary() {
       payments.getByTrip(tripId).catch(() => null),
     ])
       .then(([t, p]) => {
-        if (t.status !== 'COMPLETED') navigate(`/trip/tracking/${tripId}`, { replace: true });
+        if (t.status !== 'COMPLETED' && t.status !== 'CANCELLED') {
+          navigate(`/trip/tracking/${tripId}`, { replace: true });
+          return;
+        }
         setTrip(t);
         setPayment(p);
       })
@@ -39,8 +42,8 @@ export default function TripSummary() {
       await trips.rate(tripId, { score: rating, comment: comment.trim() || undefined });
       setRated(true);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Rating failed';
-      if (msg.includes('409') || msg.toLowerCase().includes('already')) {
+      const status = e instanceof Error && 'status' in e ? (e as { status: number }).status : 0;
+      if (status === 409) {
         setRated(true);
       } else {
         setRatingError('Could not submit rating. Try again.');

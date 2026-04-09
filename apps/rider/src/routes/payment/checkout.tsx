@@ -61,13 +61,19 @@ export default function Checkout() {
         name: 'Uber',
         description: 'Trip payment',
         handler: async (response: Record<string, string>) => {
-          await payments.verify({
-            payment_id: payment.id,
-            provider_order_id: response.razorpay_order_id,
-            provider_payment_id: response.razorpay_payment_id,
-            signature: response.razorpay_signature,
-          });
-          setPayment((prev) => prev ? { ...prev, status: 'COMPLETED' } : prev);
+          try {
+            await payments.verify({
+              payment_id: payment.id,
+              provider_order_id: response.razorpay_order_id,
+              provider_payment_id: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
+            });
+            setPayment((prev) => prev ? { ...prev, status: 'COMPLETED' } : prev);
+          } catch {
+            setError('Payment verification failed. Contact support.');
+          } finally {
+            setPaying(false);
+          }
         },
         modal: {
           ondismiss: () => setPaying(false),

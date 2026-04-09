@@ -86,11 +86,10 @@ export default function TripHistory() {
         {data.map((trip) => (
           <button
             key={trip.id}
-            onClick={() =>
-              trip.status === 'STARTED' || trip.status === 'DRIVER_ASSIGNED'
-                ? navigate(`/trip/tracking/${trip.id}`)
-                : navigate(`/trip/summary/${trip.id}`)
-            }
+            onClick={() => {
+              const isActive = trip.status === 'REQUESTED' || trip.status === 'DRIVER_ASSIGNED' || trip.status === 'STARTED';
+              navigate(isActive ? `/trip/tracking/${trip.id}` : `/trip/summary/${trip.id}`);
+            }}
             className="w-full bg-white rounded-2xl border border-gray-100 px-4 py-4 text-left shadow-sm active:scale-[0.98] transition-transform"
           >
             <div className="flex items-start justify-between gap-2 mb-2">
