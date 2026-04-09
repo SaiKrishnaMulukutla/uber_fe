@@ -1,4 +1,4 @@
-import type { TripStatus } from '@uber_fe/shared/types';
+import type { TripStatus } from '@uber_fe/shared';
 
 const config: Record<TripStatus, { label: string; className: string }> = {
   REQUESTED: { label: 'Finding driver...', className: 'bg-yellow-100 text-yellow-800' },

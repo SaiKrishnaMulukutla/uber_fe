@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { useSessionStore } from '@uber_fe/shared/stores';
+import { useSessionStore } from '@uber_fe/shared';
 
 interface AppShellProps {
   appName: string;
