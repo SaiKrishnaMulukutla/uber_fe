@@ -1,9 +1,13 @@
+import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { RequireAuth } from '@uber_fe/shared';
 import { AppShell } from '@uber_fe/ui';
+import { HomeIcon, HomeIconFilled, ClockIcon, ClockIconFilled, UserIcon, UserIconFilled } from '@uber_fe/ui';
 import { lazy, Suspense } from 'react';
 import { Spinner } from '@uber_fe/ui';
 
+const Splash = lazy(() => import('./routes/splash'));
+const Onboarding = lazy(() => import('./routes/onboarding'));
 const Register = lazy(() => import('./routes/auth/register'));
 const Login = lazy(() => import('./routes/auth/login'));
 const VerifyOTP = lazy(() => import('./routes/auth/verify-otp'));
@@ -15,18 +19,29 @@ const Checkout = lazy(() => import('./routes/payment/checkout'));
 const Notifications = lazy(() => import('./routes/notifications'));
 const Profile = lazy(() => import('./routes/profile'));
 
-const nav = [
-  { to: '/', label: 'Home' },
-  { to: '/trip/history', label: 'Trips' },
-  { to: '/notifications', label: 'Notifications' },
-  { to: '/profile', label: 'Profile' },
+const navItems = [
+  { to: '/', label: 'Home', icon: HomeIcon, activeIcon: HomeIconFilled },
+  { to: '/trip/history', label: 'Activity', icon: ClockIcon, activeIcon: ClockIconFilled },
+  { to: '/profile', label: 'Account', icon: UserIcon, activeIcon: UserIconFilled },
 ];
 
 function Wrap({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<div className="flex justify-center p-8"><Spinner /></div>}>{children}</Suspense>;
+  return (
+    <Suspense
+      fallback={
+        <div className="h-full w-full flex items-center justify-center bg-white">
+          <Spinner />
+        </div>
+      }
+    >
+      {children}
+    </Suspense>
+  );
 }
 
 export const router = createBrowserRouter([
+  { path: '/splash', element: <Wrap><Splash /></Wrap> },
+  { path: '/onboarding', element: <Wrap><Onboarding /></Wrap> },
   {
     path: '/auth',
     children: [
@@ -39,7 +54,7 @@ export const router = createBrowserRouter([
     path: '/',
     element: (
       <RequireAuth role="rider">
-        <AppShell appName="Uber" navLinks={nav} />
+        <AppShell navItems={navItems} />
       </RequireAuth>
     ),
     children: [
@@ -52,5 +67,5 @@ export const router = createBrowserRouter([
       { path: 'profile', element: <Wrap><Profile /></Wrap> },
     ],
   },
-  { path: '*', element: <Navigate to="/" replace /> },
+  { path: '*', element: <Navigate to="/splash" replace /> },
 ]);

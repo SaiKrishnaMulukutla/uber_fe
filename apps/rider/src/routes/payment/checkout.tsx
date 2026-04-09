@@ -16,9 +16,15 @@ function loadRazorpay(): Promise<void> {
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load Razorpay'));
+    script.onerror = () => reject(new Error('Payment service unavailable'));
     document.head.appendChild(script);
   });
+}
+
+function StatusIcon({ status }: { status: Payment['status'] }) {
+  if (status === 'COMPLETED') return <span className="text-5xl animate-scale-in">✅</span>;
+  if (status === 'FAILED') return <span className="text-5xl">❌</span>;
+  return <span className="text-5xl">💳</span>;
 }
 
 export default function Checkout() {
@@ -30,7 +36,13 @@ export default function Checkout() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (tripId) payments.getByTrip(tripId).then(setPayment).catch(() => setError('Payment not found')).finally(() => setLoading(false));
+    if (tripId) {
+      payments
+        .getByTrip(tripId)
+        .then(setPayment)
+        .catch(() => setError('Payment not found.'))
+        .finally(() => setLoading(false));
+    }
   }, [tripId]);
 
   const handlePay = async () => {
@@ -39,12 +51,15 @@ export default function Checkout() {
       setPaying(true);
       setError('');
       await loadRazorpay();
+      if (!window.Razorpay) throw new Error('Payment service unavailable');
       const order = await payments.createOrder(payment.id);
       new window.Razorpay({
         key: order.key_id,
-        amount: order.amount * 100,
+        amount: order.amount,
         currency: order.currency,
         order_id: order.provider_order_id,
+        name: 'Uber',
+        description: 'Trip payment',
         handler: async (response: Record<string, string>) => {
           await payments.verify({
             payment_id: payment.id,
@@ -52,41 +67,135 @@ export default function Checkout() {
             provider_payment_id: response.razorpay_payment_id,
             signature: response.razorpay_signature,
           });
-          navigate('/');
+          setPayment((prev) => prev ? { ...prev, status: 'COMPLETED' } : prev);
+        },
+        modal: {
+          ondismiss: () => setPaying(false),
         },
       }).open();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Payment failed');
+      setError(e instanceof Error ? e.message : 'Payment setup failed. Try again.');
+      setPaying(false);
+    }
+  };
+
+  const handleSimulate = async () => {
+    if (!payment) return;
+    try {
+      setPaying(true);
+      const updated = await payments.simulateSuccess(payment.id);
+      setPayment(updated);
+    } catch {
+      setError('Simulate failed.');
     } finally {
       setPaying(false);
     }
   };
 
-  if (loading) return <div className="flex justify-center p-8"><Spinner /></div>;
-  if (!payment) return <p className="text-red-600">{error}</p>;
+  if (loading) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center bg-white">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!payment) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center gap-4 px-6">
+        <p className="text-gray-500">{error || 'Payment not found.'}</p>
+        <Button variant="secondary" onClick={() => navigate(-1)}>Go back</Button>
+      </div>
+    );
+  }
+
+  const isCash = payment.payment_method === 'cash';
+  const isCompleted = payment.status === 'COMPLETED';
+  const isFailed = payment.status === 'FAILED';
+  const isPending = payment.status === 'PENDING';
+  const isProcessing = payment.status === 'PROCESSING';
 
   return (
-    <div className="flex flex-col gap-6">
-      <h2 className="font-semibold text-lg">Payment</h2>
-      <div className="bg-gray-50 rounded-xl p-4 border">
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Amount</span>
-          <span className="font-semibold">₹{payment.amount.toFixed(2)}</span>
-        </div>
-        <div className="flex justify-between text-sm mt-1">
-          <span className="text-gray-600">Status</span>
-          <span className="capitalize">{payment.status.toLowerCase()}</span>
-        </div>
+    <div className="h-full overflow-y-auto bg-white">
+      <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 z-10">
+        <h1 className="text-xl font-bold text-gray-900">Payment</h1>
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {payment.status !== 'COMPLETED' && (
-        <Button onClick={handlePay} loading={paying} className="w-full">
-          Pay ₹{payment.amount.toFixed(2)}
-        </Button>
-      )}
-      {payment.status === 'COMPLETED' && (
-        <p className="text-sm text-green-600 font-medium text-center">Payment completed</p>
-      )}
+
+      <div className="px-5 py-8 flex flex-col items-center gap-6 pb-24">
+        <StatusIcon status={payment.status} />
+
+        {/* Amount */}
+        <div className="text-center">
+          <p className="text-4xl font-black text-gray-900">₹{payment.amount.toFixed(2)}</p>
+          <p className="text-gray-400 text-sm mt-1">
+            {isCompleted ? 'Payment received' : 'Amount due'}
+          </p>
+        </div>
+
+        {/* Payment method badge */}
+        <div className="inline-flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2 text-sm font-medium text-gray-700">
+          {isCash ? '💵 Cash' : payment.payment_method === 'wallet' ? '👛 Wallet' : '💳 Card'}
+          <span className="text-gray-400">·</span>
+          <span className={`font-semibold ${isCompleted ? 'text-green-600' : isFailed ? 'text-red-600' : 'text-gray-600'}`}>
+            {payment.status.charAt(0) + payment.status.slice(1).toLowerCase()}
+          </span>
+        </div>
+
+        {error && (
+          <p className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-2.5 text-center w-full">
+            {error}
+          </p>
+        )}
+
+        {/* Cash auto-complete */}
+        {isCash && !isCompleted && (
+          <div className="text-center">
+            <p className="text-sm text-gray-500">Cash payment will be marked complete automatically.</p>
+          </div>
+        )}
+
+        {/* Card pending */}
+        {!isCash && isPending && (
+          <Button size="lg" fullWidth loading={paying} onClick={handlePay}>
+            Pay ₹{payment.amount.toFixed(2)} with Razorpay
+          </Button>
+        )}
+
+        {/* Processing */}
+        {!isCash && isProcessing && !paying && (
+          <div className="text-center flex flex-col items-center gap-2">
+            <Spinner />
+            <p className="text-sm text-gray-500">Processing payment…</p>
+            <Button size="md" fullWidth onClick={handlePay}>Resume payment</Button>
+          </div>
+        )}
+
+        {/* Failed */}
+        {isFailed && (
+          <div className="text-center flex flex-col items-center gap-2 w-full">
+            {payment.failure_reason && (
+              <p className="text-sm text-red-600 text-center">{payment.failure_reason}</p>
+            )}
+            <Button size="lg" fullWidth variant="danger" onClick={handlePay}>
+              Try again
+            </Button>
+          </div>
+        )}
+
+        {/* Completed */}
+        {isCompleted && (
+          <Button size="lg" fullWidth variant="secondary" onClick={() => navigate('/')}>
+            Back to home
+          </Button>
+        )}
+
+        {/* Dev simulate button */}
+        {import.meta.env.DEV && !isCompleted && (
+          <Button variant="ghost" size="sm" loading={paying} onClick={handleSimulate}>
+            [Dev] Simulate payment
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
