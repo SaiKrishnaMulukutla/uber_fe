@@ -22,7 +22,7 @@ export default function Tracking() {
 
   const [trip, setTrip] = useState<Trip | null>(null);
   const [driver, setDriver] = useState<Driver | null>(null);
-  const [loadError, setLoadError] = useState(false);
+  const [loadError] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [wsStatus, setWsStatus] = useState<'ok' | 'lost'>('ok');

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { trips } from '@uber_fe/shared';
 import type { Trip } from '@uber_fe/shared';
-import { Map, TripStatusBadge, TripProgressSteps, BottomSheet } from '@uber_fe/ui';
+import { Map, TripProgressSteps, BottomSheet } from '@uber_fe/ui';
 
 const POLL_INTERVAL = 5000;
 const LOCATION_INTERVAL = 3000;
