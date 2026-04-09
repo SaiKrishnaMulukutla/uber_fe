@@ -98,11 +98,11 @@ export default function ActiveTrip() {
       const updated = await trips.start(tripId);
       setTrip(updated);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Failed to start trip';
-      if (msg.includes('409') || msg.toLowerCase().includes('already')) {
+      const status = e instanceof Error && 'status' in e ? (e as { status: number }).status : 0;
+      if (status === 409) {
         await fetchTrip(); // trip already started — refetch
       } else {
-        setActionError(msg);
+        setActionError(e instanceof Error ? e.message : 'Failed to start trip');
       }
     } finally {
       setActing(false);
