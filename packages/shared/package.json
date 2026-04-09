@@ -11,10 +11,16 @@
     "./stores": "./src/stores/index.ts",
     "./realtime": "./src/realtime/index.ts"
   },
-  "devDependencies": {
-    "typescript": "^5.8.3"
-  },
   "dependencies": {
     "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vite": "^6.3.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.29.0",
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.5"
   }
 }
