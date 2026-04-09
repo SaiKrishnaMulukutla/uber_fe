@@ -25,6 +25,8 @@ export default function DriverHome() {
 
   // Geolocation
   const [driverLoc, setDriverLoc] = useState<{ lat: number; lng: number } | null>(null);
+  const driverLocRef = useRef(driverLoc);
+  useEffect(() => { driverLocRef.current = driverLoc; }, [driverLoc]);
   const [geoError, setGeoError] = useState('');
   const watchIdRef = useRef<number | null>(null);
   const locationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -98,15 +100,18 @@ export default function DriverHome() {
     if (!online || !userId) return;
 
     locationIntervalRef.current = setInterval(() => {
-      if (driverLoc) {
-        drivers.updateLocation(userId, driverLoc).catch(() => {/* silent */});
+      if (driverLocRef.current) {
+        drivers.updateLocation(userId, driverLocRef.current).catch(() => {/* silent */});
       }
     }, 10000);
 
     return () => {
-      if (locationIntervalRef.current) clearInterval(locationIntervalRef.current);
+      if (locationIntervalRef.current) {
+        clearInterval(locationIntervalRef.current);
+        locationIntervalRef.current = null;
+      }
     };
-  }, [homeState, userId, driverLoc]);
+  }, [homeState, userId]);
 
   // Poll for incoming trips every 5s when AVAILABLE
   useEffect(() => {
@@ -142,21 +147,21 @@ export default function DriverHome() {
     if (homeState !== 'INCOMING') return;
 
     countdownIntervalRef.current = setInterval(() => {
-      setDismissCountdown((prev) => {
-        if (prev <= 1) {
-          setHomeState('AVAILABLE');
-          setIncomingTrip(null);
-          clearInterval(countdownIntervalRef.current!);
-          return 60;
-        }
-        return prev - 1;
-      });
+      setDismissCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
     }, 1000);
 
     return () => {
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     };
   }, [homeState]);
+
+  // Transition out of INCOMING when countdown expires
+  useEffect(() => {
+    if (dismissCountdown === 0 && homeState === 'INCOMING') {
+      setHomeState('AVAILABLE');
+      setIncomingTrip(null);
+    }
+  }, [dismissCountdown, homeState]);
 
   // Fetch active trip when BUSY
   useEffect(() => {
