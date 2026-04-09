@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { users, useSessionStore } from '@uber_fe/shared';
 import type { User } from '@uber_fe/shared';
-import { Spinner, Button } from '@uber_fe/ui';
+import { Spinner } from '@uber_fe/ui';
 import { ChevronRightIcon, MailIcon, PhoneIcon } from '@uber_fe/ui';
 
 function getInitials(name: string): string {
