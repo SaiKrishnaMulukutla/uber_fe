@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { trips, useSessionStore } from '@uber_fe/shared';
+import { trips } from '@uber_fe/shared';
 import type { Trip } from '@uber_fe/shared';
 import { Button, Map, TripStatusBadge, Spinner } from '@uber_fe/ui';
 
@@ -10,7 +10,7 @@ const POLL_INTERVAL = 5000;
 export default function ActiveTrip() {
   const { tripId } = useParams<{ tripId: string }>();
   const navigate = useNavigate();
-  const userId = useSessionStore((s) => s.userId);
+
   const [trip, setTrip] = useState<Trip | null>(null);
   const [error, setError] = useState('');
   const [acting, setActing] = useState(false);
