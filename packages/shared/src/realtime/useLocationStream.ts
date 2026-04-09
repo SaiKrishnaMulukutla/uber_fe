@@ -1,8 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 
-const WS_BASE = (typeof import.meta !== 'undefined' && (import.meta as Record<string, unknown>).env)
-  ? (import.meta as { env: Record<string, string> }).env.VITE_WS_BASE_URL ?? 'ws://localhost:8000'
-  : 'ws://localhost:8000';
+declare global { interface ImportMeta { env: Record<string, string | undefined> } }
+const WS_BASE = import.meta.env['VITE_WS_BASE_URL'] ?? 'ws://localhost:8000';
 
 interface LocationMessage {
   trip_id: string;

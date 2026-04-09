@@ -1,6 +1,5 @@
-const BASE_URL = (typeof import.meta !== 'undefined' && (import.meta as Record<string, unknown>).env)
-  ? (import.meta as { env: Record<string, string> }).env.VITE_API_BASE_URL ?? 'http://localhost:8000'
-  : 'http://localhost:8000';
+declare global { interface ImportMeta { env: Record<string, string | undefined> } }
+const BASE_URL = import.meta.env['VITE_API_BASE_URL'] ?? 'http://localhost:8000';
 
 let _getToken: (() => string | null) | null = null;
 let _onUnauthorized: (() => void) | null = null;

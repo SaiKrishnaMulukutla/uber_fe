@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { BellIcon } from './icons';
 
 interface NotificationBellProps {
   unreadCount: number;
@@ -6,12 +7,10 @@ interface NotificationBellProps {
 
 export function NotificationBell({ unreadCount }: NotificationBellProps) {
   return (
-    <Link to="/notifications" className="relative inline-flex items-center">
-      <span className="text-xl">🔔</span>
+    <Link to="/notifications" className="relative inline-flex items-center p-1">
+      <BellIcon className="h-6 w-6 text-gray-700" />
       {unreadCount > 0 && (
-        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-          {unreadCount > 9 ? '9+' : unreadCount}
-        </span>
+        <span className="absolute top-0 right-0 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 animate-pulse" />
       )}
     </Link>
   );

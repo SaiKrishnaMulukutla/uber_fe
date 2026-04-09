@@ -1,6 +1,10 @@
 {
   "name": "uber_fe",
   "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev:rider": "pnpm --filter rider dev",
     "dev:driver": "pnpm --filter driver dev",
