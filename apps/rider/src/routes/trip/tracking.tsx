@@ -22,7 +22,7 @@ export default function Tracking() {
 
   const [trip, setTrip] = useState<Trip | null>(null);
   const [driver, setDriver] = useState<Driver | null>(null);
-  const [loadError] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [wsStatus, setWsStatus] = useState<'ok' | 'lost'>('ok');
@@ -56,15 +56,21 @@ export default function Tracking() {
       }
     } catch {
       pollFailures.current += 1;
+      if (!trip) setLoadError(true);
       if (pollFailures.current >= 3) setShowConnBanner(true);
     }
-  }, [tripId, navigate, setStatus, driver]);
+  }, [tripId, navigate, setStatus]);
 
   useEffect(() => {
     fetchTrip();
     const interval = setInterval(fetchTrip, POLL_INTERVAL);
     return () => clearInterval(interval);
   }, [fetchTrip]);
+
+  // Clear stale driver location from store on unmount
+  useEffect(() => {
+    return () => { useTripStore.getState().clearTrip(); };
+  }, []);
 
   // Elapsed timer when STARTED
   useEffect(() => {
