@@ -56,5 +56,5 @@ export const router = createBrowserRouter([
       { path: 'profile', element: <Wrap><Profile /></Wrap> },
     ],
   },
-  { path: '*', element: <Navigate to="/" replace /> },
+  { path: '*', element: <Navigate to="/auth/login" replace /> },
 ]);

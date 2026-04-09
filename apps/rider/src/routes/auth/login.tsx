@@ -25,15 +25,13 @@ export default function Login() {
       await users.login(data);
       navigate('/auth/verify-otp', { state: { email: data.email } });
     } catch (e) {
-      if (e instanceof TypeError && e.message.includes('fetch')) {
+      const status = e instanceof Error && 'status' in e ? (e as { status: number }).status : 0;
+      if (e instanceof TypeError) {
         setError('Connection failed. Check your internet.');
+      } else if (status === 429) {
+        setError('Too many attempts. Wait a few minutes.');
       } else {
-        const msg = e instanceof Error ? e.message : 'Login failed';
-        if (msg.includes('429') || msg.toLowerCase().includes('too many')) {
-          setError('Too many attempts. Wait a few minutes.');
-        } else {
-          setError('Invalid email or password.');
-        }
+        setError('Invalid email or password.');
       }
     }
   };
