@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "RideGo",
   description: "Fast, reliable rides at your fingertips.",
   applicationName: "RideGo",
+  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

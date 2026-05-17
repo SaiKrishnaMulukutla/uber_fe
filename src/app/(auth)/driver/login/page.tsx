@@ -81,6 +81,9 @@ export default function DriverLoginPage() {
             Don&apos;t have an account?{' '}
             <Link href="/driver/register" className="text-yellow-400 hover:underline">Register</Link>
           </div>
+          <div className="mt-2 text-center text-sm text-zinc-400">
+            <Link href="/driver/forgot-password" className="text-zinc-500 hover:text-zinc-300">Forgot password?</Link>
+          </div>
           <div className="mt-6 border-t border-zinc-800 pt-4 text-center text-sm text-zinc-500">
             Are you a rider?{' '}
             <Link href="/rider/login" className="text-yellow-400 hover:underline">Rider login</Link>
