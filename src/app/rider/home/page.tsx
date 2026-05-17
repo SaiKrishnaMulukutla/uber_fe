@@ -136,7 +136,7 @@ export default function RiderHomePage() {
         {/* Top bar */}
         <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-4 pt-4">
           <div className="rounded-full bg-black/70 px-3 py-1 text-sm text-white backdrop-blur">
-            Hi, {user?.name?.split(' ')[0]} 👋
+            Hi, {user?.name?.split(' ')?.[0]} 👋
           </div>
           <button
             onClick={() => router.push('/rider/history')}

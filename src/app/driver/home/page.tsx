@@ -91,7 +91,7 @@ export default function DriverHomePage() {
         {/* Top bar */}
         <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-4 pt-4">
           <div className="rounded-full bg-black/70 px-3 py-1 text-sm text-white backdrop-blur">
-            {driver?.name?.split(' ')[0]} · {driver?.vehicle_type?.toUpperCase()}
+            {driver?.name?.split(' ')?.[0]} · {driver?.vehicle_type?.toUpperCase()}
           </div>
           <button
             onClick={() => router.push('/driver/history')}
